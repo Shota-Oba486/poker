@@ -29,47 +29,47 @@ def decide_reward(player_hand,field_card,act_player_length,action):
         if action == "c":
             reward = (hand_strength - 0.4) * 0.8
         if action == "f":
-            reward = - (hand_strength - 0.4) * 0.8
+            reward = - (hand_strength - 0.3) * 0.8
     elif len(field_card) == 3:
         rank,high = rank_of_five_card(cards)[1],rank_of_five_card(cards)[2]
-        hand_strength = 0.5 if rank >= 4 else 0.4 if rank >= 3 else (high/(10 **11))
+        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
         if action == "r":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.5)
         if action == "c":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.4) * 0.8
         if action == "f":
-            reward = - (hand_strength - 0.18) * 3
+            reward = - (hand_strength - 0.3) * 0.8
     elif len(field_card) == 4:
         high = rank_of_six_card(cards)[2]
         rank = (high // (10 ** 10))
-        hand_strength = 0.5 if rank >= 4 else 0.4 if rank >= 3 else (high/(10 **11))
+        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
         if action == "r":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.5)
         if action == "c":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.4) * 0.8
         if action == "f":
-            reward = - (hand_strength - 0.18) * 3
+            reward = - (hand_strength - 0.3) * 0.8
     elif len(field_card) == 5:
         high = rank_of_seven_card(cards)[2]
         rank = (high // (10 ** 10))
-        hand_strength = 0.5 if rank >= 4 else 0.4 if rank >= 3 else (high/(10 **11))
+        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
         if action == "r":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.5)
         if action == "c":
-            reward = (hand_strength - 0.18) * 3
+            reward = (hand_strength - 0.4) * 0.8
         if action == "f":
-            reward = - (hand_strength - 0.18) * 3
+            reward = - (hand_strength - 0.3) * 0.8
     
-    if action == "r":
-        reward = -1
-    if action == "c":
-        reward = -1
-    if action == "f":
-        reward = 1
-    return reward
-
-def reward_reach_goal():
-    reward = 0
+    # if action == "r":
+    #     reward = -1
+    # if action == "c":
+    #     reward = -1
+    # if action == "f":
+    #     reward = 1
+    r = hand_strength - 0.5
+    c = (hand_strength - 0.4) * 0.8
+    f = - (hand_strength - 0.3) * 0.8
+    print("reward lists {r:",r,",c:",c,",f:",f,"}")
     return reward
 
 # import random

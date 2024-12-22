@@ -2,7 +2,7 @@ import random
 from ranking import rank_of_seven_card
 from player import Player
 import numpy as np
-from encode import encode_state
+from state_encode import encode_state
 from reward import decide_reward
 
 class OneRound:
@@ -32,7 +32,7 @@ class OneRound:
         self.act_done_list = [False] * self.players_length
         self.round_end_flag = False
         self.current_phase= 0
-        self.state_size = 111
+        self.state_size = 8
     
     def _current_phase(self):
         if self.current_phase == 1:
@@ -61,8 +61,8 @@ class OneRound:
             best_player_score = 0
             for player in self.players:
                 if self.battle_user_list[player.num]:
-                    player.card = player.card + self.field_card
-                    player_five_card, player_rank_text, player_hand_score = rank_of_seven_card(player.card)
+                    card = player.card + self.field_card
+                    player_five_card, player_rank_text, player_hand_score = rank_of_seven_card(card)
                     print(player.name,player_five_card[0],player_five_card[1],player_five_card[2],player_five_card[3],player_five_card[4])
                     if best_player_score < player_hand_score:
                         best_player_score = player_hand_score
@@ -134,6 +134,13 @@ class OneRound:
             else:
                 mask = [1,0,0]
         return mask
+    
+    def required_equity(self):
+        ### プレイヤーを二人から拡張する時、変更する必要あり
+        require_money = self.field_max_bet_amount - self.players[self.current_index].bet_amount
+        pod = self.field_max_bet_amount * 2 - self.players[self.current_index].bet_amount
+        rate = require_money/pod
+        return rate
 
     def step(self,action):
         player = self.players[self.current_index]
@@ -151,7 +158,7 @@ class OneRound:
         # if action =="a":
         #     self.act_done_list = [False] * self.splayers_length
         #     self.field_max_bet_amount = player.bet_amount
-        print({player.name}," card",{player.card[0]},{player.card[1]}," action:",{action}, " bet_amount:",{player.bet_amount})
+        print({player.name}," card",{player.card[0]},{player.card[1]}," action:",{action},"reward",{reward}, " bet_amount:",{player.bet_amount})
         self.act_done_list[self.current_index] = True
 
         # バトルユーザーが一人になった時の挙動

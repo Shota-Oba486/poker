@@ -1,7 +1,5 @@
 import random
-from ranking import rank_of_seven_card
-from player import Player
-import numpy as np
+from ranking import rank_of_multi_card
 from state_encode import encode_state
 from reward import decide_reward
 
@@ -32,7 +30,6 @@ class OneRound:
         self.act_done_list = [False] * self.players_length
         self.round_end_flag = False
         self.current_phase= 0
-        self.state_size = 8
     
     def _current_phase(self):
         if self.current_phase == 1:
@@ -62,7 +59,7 @@ class OneRound:
             for player in self.players:
                 if self.battle_user_list[player.num]:
                     card = player.card + self.field_card
-                    player_five_card, player_rank_text, player_hand_score = rank_of_seven_card(card)
+                    player_five_card, player_rank_text, player_hand_score,rank = rank_of_multi_card(card)
                     print(player.name,player_five_card[0],player_five_card[1],player_five_card[2],player_five_card[3],player_five_card[4])
                     if best_player_score < player_hand_score:
                         best_player_score = player_hand_score
@@ -97,15 +94,15 @@ class OneRound:
     def set(self):
         ###デッキのシャッフル
         random.shuffle(self.deck)
-        sb_player = self._get_next_player_index(self.btn_player)
-        bb_player = self._get_next_player_index(sb_player)
+        self.sb_player = self._get_next_player_index(self.btn_player)
+        bb_player = self._get_next_player_index(self.sb_player)
 
         ### sbプレイヤー、bbプレイヤーからmoneyを徴収する
-        self.players[sb_player].bet(self.sb_amount)
+        self.players[self.sb_player].bet(self.sb_amount)
         self.field_max_bet_amount = self.sb_amount * 2
         self.players[bb_player].bet(self.sb_amount * 2)
         ### 各プレイヤーに二枚ずつデッキからカードを配る
-        print("preflop start(each player have 2cards)!!!")
+        print("preflop start!!!(each player have 2cards)")
         for player in self.players:
             player.recieve_card(self.deck.pop(0))
             player.recieve_card(self.deck.pop(0))
@@ -113,8 +110,7 @@ class OneRound:
         self.first_index = self.current_index
     
     def player_state(self,index):
-        # 持ち金、ベット金額、持ちカード、フィールドカード、現在のフェーズ
-        state = encode_state(self.players[index].stack,self.players[index].bet_amount,self.players[index].card,self.field_card,self.current_phase)
+        state = encode_state(self.players[index].bet_amount,self.field_max_bet_amount,self.players[index].card,self.field_card,self.current_phase,self.sb_player==self.players[index].num)
         return state
     
     def mask(self,player_index):
@@ -134,13 +130,6 @@ class OneRound:
             else:
                 mask = [1,0,0]
         return mask
-    
-    def required_equity(self):
-        ### プレイヤーを二人から拡張する時、変更する必要あり
-        require_money = self.field_max_bet_amount - self.players[self.current_index].bet_amount
-        pod = self.field_max_bet_amount * 2 - self.players[self.current_index].bet_amount
-        rate = require_money/pod
-        return rate
 
     def step(self,action):
         player = self.players[self.current_index]
@@ -148,16 +137,16 @@ class OneRound:
 
         if action == "f":
             self.battle_user_list[self.current_index] = False
-            reward = decide_reward(player.card,self.field_card,self.players_length,action)
-        if action == "c":
-            reward = decide_reward(player.card,self.field_card,self.players_length,action)
+        # if action == "c":
         if action == "r":
             self.field_max_bet_amount = player.bet_amount
             self.act_done_list = [False] * self.players_length
-            reward = decide_reward(player.card,self.field_card,self.players_length,action)
         # if action =="a":
         #     self.act_done_list = [False] * self.splayers_length
         #     self.field_max_bet_amount = player.bet_amount
+
+        reward = decide_reward(self.field_max_bet_amount,player.bet_amount,self.current_phase,player.card,self.field_card,action,self.current_index==player.num)
+        # reward = decide_reward(player.card,self.field_card,self.players_length,action)
         print({player.name}," card",{player.card[0]},{player.card[1]}," action:",{action},"reward",{reward}, " bet_amount:",{player.bet_amount})
         self.act_done_list[self.current_index] = True
 
@@ -193,5 +182,6 @@ class OneRound:
 # one_round = OneRound(players,0,100)
 # one_round.set()
 # one_round.step("r")
+# one_round.step("c")
 # one_round.step("r")
 # one_round.step("f")

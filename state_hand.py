@@ -1,7 +1,5 @@
 import pickle
-from ranking import rank_of_five_card
-from ranking import rank_of_six_card
-from ranking import rank_of_seven_card
+from ranking import rank_of_multi_card
 
 with open('2_hand.pkl', 'rb') as f:
     dict = pickle.load(f)
@@ -25,17 +23,14 @@ def hand_state(player_hand,field_card):
 
     if len(field_card) == 0:
         hand_strength = judge_2hand(player_hand)
-    elif len(field_card) == 3:
-        rank,high = rank_of_five_card(cards)[1],rank_of_five_card(cards)[2]
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
-    elif len(field_card) == 4:
-        high = rank_of_six_card(cards)[2]
-        rank = (high // (10 ** 10))
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
-    elif len(field_card) == 5:
-        high = rank_of_seven_card(cards)[2]
-        rank = (high // (10 ** 10))
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
+    else:
+        high,rank = rank_of_multi_card(cards)[3][2]
+        if len(field_card) == 3:
+            hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
+        elif len(field_card) == 4:
+            hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
+        elif len(field_card) == 5:
+            hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
 
     return hand_strength
 

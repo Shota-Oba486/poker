@@ -2,10 +2,18 @@ import sys
 import os 
 from collections import Counter
 sys.path.append(os.path.abspath('..'))
+from ranking import rank_of_multi_card
 
-# モジュールをインポート
-from ranking import rank_of_five_card
+"""
+Args:
+    cards:hand_card + field_card
+    cardは5枚か6枚
 
+Retunrs:
+    rank:rank
+    high:high
+    outs:outsの数
+"""
 
 def is_flush_chance(cards):
     suits = [card[1] for card in cards]
@@ -21,8 +29,7 @@ def is_straight(num_list):
     if 14 in ranks:
         ranks.add(1)
     unique_ranks = sorted(ranks,reverse=True)
-    print(unique_ranks)
-
+    
     if len(unique_ranks) >= 5:
         for i in range(0,len(unique_ranks)-4):
             if (unique_ranks[i] - unique_ranks[i + 4]) == 4:
@@ -39,10 +46,9 @@ def outs_num_straight(cards):
     if 14 in ranks:
         ranks.add(1)
     unique_ranks = sorted(ranks,reverse=True) 
-    print(unique_ranks)
     ### numの種類が3種類以下だったら、flushdrawの可能性がないので、return 0
     if len(unique_ranks) <= 3:
-        return 
+        return 0
     ### straightだったら、0
     if is_straight(unique_ranks):
         return 0
@@ -52,10 +58,61 @@ def outs_num_straight(cards):
 
     for i in range (min_num,max_num+1):
         if not i in ranks:
-            print(i)
             append_i_cards = list(unique_ranks)
             append_i_cards.append(i)
 
             if is_straight(append_i_cards):
                 outs_list.append(i)
     return len(set(outs_list))
+
+def flop_turn_str(cards):
+    high,rank = rank_of_multi_card(cards)[2],rank_of_multi_card(cards)[3]
+    
+    outs = 0
+    if rank == 1:
+        ### フラッシュの可能性について
+        if is_flush_chance(cards):
+            outs += 9
+        ### straightの可能性について
+        if outs != 0:
+            outs += outs_num_straight(cards) * 4 - 2
+        else:
+            outs += outs_num_straight(cards) * 4
+
+    return rank,high,outs
+
+# import random
+# deck = [
+#     "As", "Ad", "Ac", "Ah",
+#     "Ks", "Kd", "Kc", "Kh",
+#     "Qs", "Qd", "Qc", "Qh",
+#     "Js", "Jd", "Jc", "Jh",
+#     "Ts", "Td", "Tc", "Th",
+#     "9s", "9d", "9c", "9h",
+#     "8s", "8d", "8c", "8h",
+#     "7s", "7d", "7c", "7h",
+#     "6s", "6d", "6c", "6h",
+#     "5s", "5d", "5c", "5h",
+#     "4s", "4d", "4c", "4h",
+#     "3s", "3d", "3c", "3h",
+#     "2s", "2d", "2c", "2h"
+# ]
+# random.shuffle(deck)
+
+# player_hand = []
+# field_card = []
+# player_hand.append(deck[0])
+# player_hand.append(deck[1])
+# field_card.append(deck[2])
+# field_card.append(deck[3])
+# field_card.append(deck[4])
+
+
+# # player_hand = ["9s","7c"]
+# # field_card = ["Ks","Ts","Qs","8s"]
+
+# player_hand = ["9s","7c"]
+# field_card = ["Ks","Ts","Qs","8s"]
+
+
+# flop_turn_str(player_hand + field_card)

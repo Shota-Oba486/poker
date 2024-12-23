@@ -1,68 +1,62 @@
 import numpy as np
-from state_hand import hand_state
+from hand_strength.preflop import pf_str_sb
+from hand_strength.preflop import pf_str_bb
+from hand_strength.flop_turn import flop_turn_str
+from ranking import rank_of_multi_card
 
-def encode_state(player_chips, bet_amount, hand_cards, table_cards, phase):
-    """
-    ポーカーの状態をエンコードする
-    
-    Args:
-        player_chips (int): プレイヤーの持ち金
-        bet_amount (int): ベット金額
-        hand_strength(float32): ハンドの強さをプログラムで判定
-        phase (int): 0,1,2,3,4 現在のフェーズ ("preflop", "flop", "turn", "river","show down")
-    
-    Returns:
-        np.array: エンコードされた状態ベクトル
-    """
-    # 持ち金とベット金額（連続値の正規化/最大100,000チップと仮定)
-    normalized_chips = player_chips / 100000
-    normalized_bet = bet_amount / 100000
+def encode_state(bet_amount,max_bet_amount,hand_card,field_card,phase,sb_flag):
 
-    """ 
-    未使用!!!!!!（カードを1-hotで表すのは非効率で学習が進まない？？）
-    # 持ちカードとフィールドカードのエンコード (ランクとスートをワンホットでエンコード)
-    def encode_cards(cards):
-        encoded = np.zeros(52)
-        if len(cards) == 0:
-            return encoded
-        else:
-            rank_to_num = {'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3,'2': 2}
-            suit_to_num = {"s":0,"d":1,"c":2,"h":3}
+    cards = hand_card + field_card
+    ### プレイヤーが二人の時を想定（プレイヤーが増えたときは変更する必要あり）
+    if max_bet_amount != bet_amount:
+        c_require_rate = (max_bet_amount - bet_amount) / (max_bet_amount * 2)
+    else:
+        c_require_rate = 0
 
-            ranks = np.array([rank_to_num[card[0]] for card in cards])
-            suits = np.array([suit_to_num[card[1]] for card in cards])
-            indices = (ranks - 2) * 4 + suits
-            encoded[indices]
+    r_require_rate = (max_bet_amount * 2 - bet_amount) / (max_bet_amount * 2 * 2)
 
-            return encoded
+    rank,str_in_rank,outs_rate = 0,0,0
 
-    encoded_hand = encode_cards(hand_cards)
-    encoded_table = encode_cards(table_cards)
-    """
+    if sb_flag:
+        pf_hand_strength = pf_str_sb(hand_card)
+    else:
+        pf_hand_strength = pf_str_bb(hand_card)
+        
+    if phase == 1:
+        rank,high,outs = flop_turn_str(cards)
+        str_in_rank = (high % (10 ** 10)) /10**9
+        outs_rate = 2 * outs / 47
+    if phase == 2:
+        rank,high,outs = flop_turn_str(cards)
+        str_in_rank = (high % (10 ** 10)) /10**9
+        outs_rate = outs / 46
+    if phase == 3:
+        high,rank = rank_of_multi_card(cards)[2],rank_of_multi_card(cards)[3],
+        str_in_rank = (high % (10 ** 10)) /10**9
 
-    hand_strength = hand_state(hand_cards,table_cards)
-
-    # フェーズ情報のワンホットエンコード
     phase_encoded = np.zeros(5)
     phase_encoded[phase] = 1
 
     # 全ての情報を結合
     state_vector = np.concatenate([
-        # [normalized_chips, normalized_bet],  # 数値情報
-        [hand_strength],
+        [c_require_rate,r_require_rate],
+        [rank,str_in_rank,outs_rate],
+        [pf_hand_strength],
         phase_encoded  # フェーズ情報
     ])
     
     return state_vector
 
-# # 状態の例
-# player_chips = 99900
-# bet_amount = 100
-# hand_cards = ["2d", "Qs"]
-# table_cards = []
-# phase = 0
+####状態の例
 
-# state = encode_state(player_chips, bet_amount, hand_cards, table_cards, phase)
-# print(state)
+# bet_amount = 200
+# max_bet_amount = 200
 
-# print(state.shape)
+# player_hand = ["9s","7c"]
+# field_card = ["Ks","Ts","Qs","8s"]
+
+# phase = 2
+# sb_flag = True
+
+# a = encode_state(bet_amount,max_bet_amount,player_hand,field_card,phase,sb_flag)
+# print(a)

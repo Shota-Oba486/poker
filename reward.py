@@ -1,106 +1,127 @@
-import pickle
-from ranking import rank_of_five_card
-from ranking import rank_of_six_card
-from ranking import rank_of_seven_card
+"""
+Args:
+    field_max_bet
+    player_bet_amount
+    phase:0,1,2,3,4（preflop,flop,river,turn）
+    player_card:
+    field_card
+    action:"f","c","r"
+    sb_player_flag:True or False
 
-with open('2_hand.pkl', 'rb') as f:
-    dict = pickle.load(f)
+Returns:
+    reward
+"""
+from hand_strength.preflop import pf_str_sb
+from hand_strength.preflop import pf_str_bb
+from hand_strength.preflop import pf_str_yokosawa
+from hand_strength.flop_turn import flop_turn_str
 
-def judge_2hand(player_hand):
+def decide_reward(field_max_bet,player_bet_amount,phase,player_card,field_card,action,sb_player_flag,):
 
-    if player_hand[0][1] == player_hand[1][1]:
-        cond0 = "same"
-    else:
-        cond0 = "diff"
+    if phase == 0:
+        ### pf_str を定める
+        if sb_player_flag:
+            pf_str = pf_str_sb(player_card)
+        else:
+            pf_str = pf_str_bb(player_card)
+            
+        if action == "r":
+            # -0.75,-0.25,0.25,0.75
+            reward = (pf_str - 2.5)/2
+        if action == "c":
+            # -0.25,0.25,0.25,0.25
+            if pf_str == 2 or pf_str == 3:
+                reward = 0.25
+            else:
+                reward = - 0.25
+        if action == "f":
+            # 0.5,0.0,-0.5,-1.0
+            reward = ( - (pf_str)+2) / 2
+
+    if phase == 1 or phase == 2:
+
+        rank,high,outs = flop_turn_str(player_card + field_card)
+
+        if phase == 1:
+            outs_rate = 2 * outs/47
+        if phase == 2:
+            outs_rate = outs /46
+
+        if rank == 1:
+            # プレイヤーが二人の時を仮定
+            # 変更する必要あり
+            c_rate = (field_max_bet - player_bet_amount) / player_bet_amount * 2
+            r_rate = (field_max_bet*2 - player_bet_amount) / player_bet_amount * 2 * 2
+
+            if outs_rate >= r_rate:
+                if action == "r":
+                    reward = 0.5
+                if action == "c":
+                    reward = -0.25
+                if action == "f":
+                    reward = -0.5
+            elif outs_rate >= c_rate:
+                if action == "r":
+                    reward = -0.25
+                if action == "c":
+                    reward = 0.5
+                if action == "f":
+                    reward = -0.4
+            else:
+                if outs_rate >= 0.1:
+                    if action == "r":
+                        reward = -0.5
+                    if action == "c":
+                        reward = -0.1
+                    if action == "f":
+                        reward = 0.1
+                else:
+                    if action == "r":
+                        reward = -0.5
+                    if action == "c":
+                        reward = -0.4
+                    if action == "f":
+                        reward = 0.4
+        if rank == 2:
+            str_in_rank = 0.5 * (high % (10 ** 10)) /10**9
+            if action == "r":
+                reward = str_in_rank - 0.2
+            if action == "c":
+                reward = str_in_rank - 0.4
+            if action == "f":
+                reward = -(str_in_rank - 0.2)
+        if rank >= 3:
+            if action == "r":
+                reward = 1
+            if action == "c":
+                reward = -0.5
+            if action == "f":
+                reward = -1.0
+
+    if phase == 3:
+
+        rank,high,outs = flop_turn_str(player_card + field_card)
+        if rank == 1:
+            if action == "r":
+                reward = -0.5
+            if action == "c":
+                reward = -0.05
+            if action == "f":
+                reward = 0.05
+        if rank == 2:
+            str_in_rank = 0.5 * (high % (10 ** 10)) /10**9
+            if action == "r":
+                reward = str_in_rank - 0.2
+            if action == "c":
+                reward = str_in_rank - 0.4
+            if action == "f":
+                reward = -(str_in_rank - 0.2)
+        if rank >= 3:
+            if action == "r":
+                reward = 1
+            if action == "c":
+                reward = -0.5
+            if action == "f":
+                reward = -1.0
     
-    rank_to_num = {'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3,'2': 2}
-    if rank_to_num[player_hand[0][0]] <= rank_to_num[player_hand[1][0]]:
-        cond1,cond2 = player_hand[0][0], player_hand[1][0]
-    else:
-        cond1,cond2 = player_hand[1][0], player_hand[0][0]
-    return dict[(cond0,cond1,cond2)]
-
-def decide_reward(player_hand,field_card,act_player_length,action):
-    cards = player_hand + field_card
-    if len(field_card) == 0:
-        hand_strength = judge_2hand(player_hand)
-        if action == "r":
-            reward = (hand_strength - 0.5)
-        if action == "c":
-            reward = (hand_strength - 0.4) * 0.8
-        if action == "f":
-            reward = - (hand_strength - 0.3) * 0.8
-    elif len(field_card) == 3:
-        rank,high = rank_of_five_card(cards)[1],rank_of_five_card(cards)[2]
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
-        if action == "r":
-            reward = (hand_strength - 0.5)
-        if action == "c":
-            reward = (hand_strength - 0.4) * 0.8
-        if action == "f":
-            reward = - (hand_strength - 0.3) * 0.8
-    elif len(field_card) == 4:
-        high = rank_of_six_card(cards)[2]
-        rank = (high // (10 ** 10))
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
-        if action == "r":
-            reward = (hand_strength - 0.5)
-        if action == "c":
-            reward = (hand_strength - 0.4) * 0.8
-        if action == "f":
-            reward = - (hand_strength - 0.3) * 0.8
-    elif len(field_card) == 5:
-        high = rank_of_seven_card(cards)[2]
-        rank = (high // (10 ** 10))
-        hand_strength = 0.8 if rank >= 4 else 0.7 if rank >= 3 else 0.6 if rank >= 2 else (high/(10 **11))
-        if action == "r":
-            reward = (hand_strength - 0.5)
-        if action == "c":
-            reward = (hand_strength - 0.4) * 0.8
-        if action == "f":
-            reward = - (hand_strength - 0.3) * 0.8
-    
-    # if action == "r":
-    #     reward = -1
-    # if action == "c":
-    #     reward = -1
-    # if action == "f":
-    #     reward = 1
-    r = hand_strength - 0.5
-    c = (hand_strength - 0.4) * 0.8
-    f = - (hand_strength - 0.3) * 0.8
-    print("reward lists {r:",r,",c:",c,",f:",f,"}")
     return reward
-
-# import random
-# for _ in range(10000):
-#     deck = [
-#         "As", "Ad", "Ac", "Ah",
-#         "Ks", "Kd", "Kc", "Kh",
-#         "Qs", "Qd", "Qc", "Qh",
-#         "Js", "Jd", "Jc", "Jh",
-#         "Ts", "Td", "Tc", "Th",
-#         "9s", "9d", "9c", "9h",
-#         "8s", "8d", "8c", "8h",
-#         "7s", "7d", "7c", "7h",
-#         "6s", "6d", "6c", "6h",
-#         "5s", "5d", "5c", "5h",
-#         "4s", "4d", "4c", "4h",
-#         "3s", "3d", "3c", "3h",
-#         "2s", "2d", "2c", "2h"
-#     ]
-
-#     random.shuffle(deck)
-#     player_hand = []
-#     player_hand.append(deck[0])
-#     player_hand.append(deck[1])
-#     field_card = []
-#     field_card.append(deck[2])
-#     field_card.append(deck[3])
-#     field_card.append(deck[4])
-#     field_card.append(deck[5])
-#     field_card.append(deck[6])
-
-#     reward = decide_reward(player_hand,field_card,2,"r")
-#     print(field_card,player_hand)
-#     print(reward)

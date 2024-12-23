@@ -54,12 +54,12 @@ def rank_of_five_card(five_card_list):
             else:
                 rank_text,rank = "nothing", 1
     
-    high = rank * 100 ** 5 + high
+    high = rank * 10 ** 10 + high
     return rank_text,rank,high
 
-def rank_of_six_card(six_card_list):
+def rank_of_multi_card(cards):
     best_rank_num = 0
-    five_card_list = itertools.combinations(six_card_list, 5)
+    five_card_list = itertools.combinations(cards, 5)
 
     for five_card in five_card_list:
         ranks = rank_of_five_card(five_card)
@@ -67,16 +67,5 @@ def rank_of_six_card(six_card_list):
             best_rank_num = ranks[2]
             best_five_card = five_card
             best_rank_text = ranks[0]
-    return best_five_card, best_rank_text, best_rank_num
-
-def rank_of_seven_card(seven_card_list):
-    best_rank_num = 0
-    five_card_list = itertools.combinations(seven_card_list, 5)
-
-    for five_card in five_card_list:
-        ranks = rank_of_five_card(five_card)
-        if ranks[2] > best_rank_num:
-            best_rank_num = ranks[2]
-            best_five_card = five_card
-            best_rank_text = ranks[0]
-    return best_five_card, best_rank_text, best_rank_num
+            rank = best_rank_num // (10 ** 10)
+    return best_five_card, best_rank_text, best_rank_num,rank

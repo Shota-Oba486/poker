@@ -5,6 +5,7 @@ class Player:
         self.card = []
         self.num = num
         self.bet_amount = 0
+        self.last_player_act = None
     
     def get(self,get_amount):
         self.stack += get_amount
@@ -15,22 +16,21 @@ class Player:
     def reset(self):
         self.bet_amount = 0
         self.card = []
+        self.last_player_act = None
     
     def bet(self,bet_amount):
         self.bet_amount += bet_amount
         self.stack -= bet_amount
 
-    def state(self):
-        self.state = [self.stack,self.bet_amount,self.card]
-        return self.state
-
     def take_action(self,field_max_bet,action):
         if action == "f":
+            self.last_player_act = "f"
             return "f"
         elif action == "c":
             call_amount = field_max_bet - self.bet_amount
             self.stack -= call_amount
             self.bet_amount += call_amount
+            self.last_player_act = "c"
             return "c"
         elif action == "r":
             total_bet_amount = 2 * field_max_bet
@@ -38,6 +38,7 @@ class Player:
 
             self.stack -= (raise_amount)
             self.bet_amount  = total_bet_amount
+            self.last_player_act = "r"
             return "r"
 
         # elif action== "a":

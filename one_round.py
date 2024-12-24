@@ -2,6 +2,7 @@ import random
 from ranking import rank_of_multi_card
 from state_encode import encode_state
 from reward import decide_reward
+from player import Player
 
 class OneRound:
     def __init__(self,players,btn_player,sb_amount):
@@ -30,6 +31,8 @@ class OneRound:
         self.act_done_list = [False] * self.players_length
         self.round_end_flag = False
         self.current_phase= 0
+        self.action_count_phase = 0
+        self.last_field_act = None
     
     def _current_phase(self):
         if self.current_phase == 1:
@@ -38,22 +41,26 @@ class OneRound:
             self.field_card.append(self.deck.pop(0))
             self.field_card.append(self.deck.pop(0))
             self.field_card.append(self.deck.pop(0))
+            self.action_count_phase = 0
             print("Flop start!!(3cards in field)")
             print("field card :" ,{self.field_card[0]},{self.field_card[1]},{self.field_card[2]})
             return
         if self.current_phase == 2:
             # フィールドに4枚のカードが配られた状況
             self.field_card.append(self.deck.pop(0))
+            self.action_count_phase = 0
             print("Turn start!!(4cards in field)")
             print("field card :" ,{self.field_card[0]},{self.field_card[1]},{self.field_card[2]},{self.field_card[3]})
             return
         if self.current_phase == 3:
             # フィールドに5枚のカードが配られた状況
             self.field_card.append(self.deck.pop(0))
+            self.action_count_phase = 0
             print("River start!!(5cards,final betting time)")
             print("field card :" ,{self.field_card[0]},{self.field_card[1]},{self.field_card[2]},{self.field_card[3]},{self.field_card[4]})
             return
         if self.current_phase == 4:
+            self.action_count_phase = 0
             # 最後の判別のタイミング
             best_player_score = 0
             for player in self.players:
@@ -110,7 +117,7 @@ class OneRound:
         self.first_index = self.current_index
     
     def player_state(self,index):
-        state = encode_state(self.players[index].bet_amount,self.field_max_bet_amount,self.players[index].card,self.field_card,self.current_phase,self.sb_player==self.players[index].num)
+        state = encode_state(self.players[index].bet_amount,self.field_max_bet_amount,self.players[index].card,self.field_card,self.current_phase,self.last_field_act,self.players[index].last_player_act,self.action_count_phase)
         return state
     
     def mask(self,player_index):
@@ -130,23 +137,27 @@ class OneRound:
             else:
                 mask = [1,0,0]
         return mask
-
+    
     def step(self,action):
         player = self.players[self.current_index]
         action = player.take_action(self.field_max_bet_amount,action)
 
         if action == "f":
             self.battle_user_list[self.current_index] = False
-        # if action == "c":
+            self.last_field_act = "f"
+        if action == "c":
+            self.last_field_act = "c"
+            self.action_count_phase += 1
         if action == "r":
             self.field_max_bet_amount = player.bet_amount
             self.act_done_list = [False] * self.players_length
+            self.last_field_act = "r"
+            self.action_count_phase += 2
         # if action =="a":
         #     self.act_done_list = [False] * self.splayers_length
         #     self.field_max_bet_amount = player.bet_amount
 
-        reward = decide_reward(self.field_max_bet_amount,player.bet_amount,self.current_phase,player.card,self.field_card,action,self.current_index==player.num)
-        # reward = decide_reward(player.card,self.field_card,self.players_length,action)
+        reward = decide_reward(self.field_max_bet_amount,player.bet_amount,self.current_phase,player.card,self.field_card,action,player.last_player_act,self.last_field_act,self.action_count_phase)
         print({player.name}," card",{player.card[0]},{player.card[1]}," action:",{action},"reward",{reward}, " bet_amount:",{player.bet_amount})
         self.act_done_list[self.current_index] = True
 
@@ -163,6 +174,7 @@ class OneRound:
             next_state = None
             
             return reward ,next_state
+
         else:
             #current_indexを次の人に渡して、その人が実行済みかどうかを判断する
             self.current_index = self._get_next_player_index(self.current_index)

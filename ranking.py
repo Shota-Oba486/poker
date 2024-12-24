@@ -4,18 +4,17 @@ import collections
 def rank_of_five_card(five_card_list):
     rank_to_num = {'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3,'2': 2}
     """
-    Rank list
     9:royal straight flush
     8:four card
     7:full house
     6:flush
     5:straight
-    4:one pair
+    4:three card
     3:two pair 
     2:one pair
     1:no pair
     """
-
+    
     ### 5枚のカードを数値化
     number_ranks = [rank_to_num[card[0]] for card in five_card_list]
     num_cnt = collections.Counter(number_ranks)

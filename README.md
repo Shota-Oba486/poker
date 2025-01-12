@@ -3,9 +3,8 @@
 強化学習について勉強してみたかったのでポーカー（1対1）のAIを作成してみました。  
 最終的に、**ルールを覚えたての初心者は上回っているかな**、という強さになりました。
 
-作成したAIと**対戦できるGUI**も作成してありますので、お試しください👍👍👍
-![gui画像](images/gui_sample.png)
-
+作成したAIと**対戦できるGUI**も作成してありますので、お試しください👍👍👍  
+<img src="./images/gui_sample.png" alt="gui画像" width="600" height="400">
 
 ## 環境構築
 - python==3.12
@@ -138,11 +137,11 @@ python -m gui.main
    - loose（弱い手でも積極的に攻めるスタイル）
    - normal
    - tight（強い手でしか攻めてこない堅実なスタイル）
-![battle_style](./images/battle_style.png)
+<img src="./images/battle_style.png" alt="end_screen" width="600" height="200">
 - **各buttonでアクションを選択し、AIとバトルする**
-![player_screen](./images/gui_sample.png)
+<img src="./images/gui_sample.png" alt="end_screen" width="600" height="400">
 - **10回のラウンドの末の持ち点で勝負を判定する**
-![end_screen](./images/end_screen.png)
+<img src="./images/end_screen.png" alt="end_screen" width="600" height="350">
 
 ## 今後の展望
 1. アルゴリズムの変更

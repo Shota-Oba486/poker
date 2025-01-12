@@ -35,13 +35,13 @@ $$\pi_\theta:方策$$
 この目的関数の中では**状態価値関数**(*V*)と **方策**(*π*)の二つがニューラルネットワーク(NN)であるため、この二つのNNの学習を進めることで目的関数の最小化を図る。
 
 - **状態価値関数(*V*)の損失関数(Loss)**  
-$$ target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1})  $$  
-$$ loss_v = target - V_{phase_t, w_t}(S_t)$$ 
+$$target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1}) $$  
+$$loss_v = target - V_{phase_t, w_t}(S_t) $$ 
 
 - **方策(*π*)の損失関数(Loss)**  
-$$ target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1})  $$  
-$$ loss_\pi = (target - V_{phase_t, w_t}(S_t))\nabla_\theta\log \pi_\theta (A_t | S_t)$$
-$$ ※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$  
+$$target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1})$$  
+$$loss_\pi = (target - V_{phase_t, w_t}(S_t))\nabla_\theta\log \pi_\theta (A_t | S_t) $$
+$$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$  
 
 今回作成した強化学習の中で**最も工夫した点**は、
 ***V***と***π***をAgentがActionを起こすphaseであるpreflop, flop, turn, riverの4つそれぞれに対し、個別に作成したことである。  

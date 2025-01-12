@@ -126,7 +126,11 @@ $$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$
 ## 学習について
 **actor_critic.ipynb**に細かく記載
 
-self対戦になっており、ai同士のバトルで学習していく
+※actor_critic.ipynbでは以下の4つが可能。
+- 学習
+- 学習モデルの保存
+- 過去のモデルの復元
+- .onnxに変換（GPU）が必要ないモデル
 
 
 ## GUI操作

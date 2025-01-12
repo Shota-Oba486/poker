@@ -141,11 +141,13 @@ python -m gui.main
    - loose（弱い手でも積極的に攻めるスタイル）
    - normal
    - tight（強い手でしか攻めてこない堅実なスタイル）
-<img src="./images/battle_style.png" alt="end_screen" width="600" height="180">
+<img src="./images/battle_style.png" alt="end_screen" width="600" height="180">  
+
 - **各buttonでアクションを選択し、AIとバトルする**
-<img src="./images/gui_sample.png" alt="end_screen" width="600" height="400">
+<img src="./images/gui_sample.png" alt="end_screen" width="600" height="400">  
+
 - **10回のラウンドの末の持ち点で勝負を判定する**
-<img src="./images/end_screen.png" alt="end_screen" width="600" height="350">
+<img src="./images/end_screen.png" alt="end_screen" width="600" height="350">  
 
 ## 今後の展望
 1. アルゴリズムの変更

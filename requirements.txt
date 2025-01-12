@@ -1,0 +1,7 @@
+tqdm
+onnxruntime
+onnx
+torch 
+torchvision
+torchaudio
+wnadb

@@ -126,7 +126,7 @@ $$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$
 ## 学習について
 **actor_critic.ipynb**に細かく記載
 
-※actor_critic.ipynbでは以下の4つが可能。
+※actor_critic.ipynbでは以下の4つが可能
 - 学習
 - 学習モデルの保存
 - 過去のモデルの復元

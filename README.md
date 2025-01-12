@@ -43,7 +43,7 @@ $$loss_\pi = (target - V_{phase_t, w_t}(S_t))\nabla_\theta\log \pi_\theta (A_t |
 $$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$  
 
 今回作成した強化学習の中で**最も工夫した点**は、
-***V***と***π***をAgentがActionを起こすphaseであるpreflop, flop, turn, riverの4つそれぞれに対し、個別に作成したことである  
+***V***と***π***をAgentがActionを起こすphaseであるpreflop, flop, turn, riverの**4つそれぞれに対し、個別に作成したことである**  
 
 通常の強化学習では個別に作成することはないのだが、ポーカーの場合、各phaseそれぞれに対し考えるべき変数が大きく異なるため、**それぞれ個別に作成をした**
 

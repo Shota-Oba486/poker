@@ -23,9 +23,10 @@ pip install requirements
 
 - **目的関数**
 
-$$ \nabla_\theta J(\theta) = \mathbb{E} \left[ \sum_{t=0}^{T} \left( R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1}) - V_{phase_t, w_t}(S_t) \right) \nabla_\theta \log \pi_\theta (A_t | S_t)\right]$$
+$$ \nabla_\theta J(\theta) = \mathbb{E} \left[ \sum_{t=0}^{T} \left( R_t + \gamma_{phase_{t}} V_{phase_{t+1}, w_{t+1}}(S_{t+1}) - V_{phase_t, w_t}(S_t) \right) \nabla_\theta \log \pi_\theta (A_t | S_t)\right]$$
 
 $$R_t:報酬$$
+$$\gamma_{phase_t}:phase_tでの割引率$$
 $$V_{phase_t, w_t}(S_t):状態S_t(phase_t)での状態価値$$
 $$S_t:状態変数$$
 $$\pi_\theta:方策$$
@@ -34,20 +35,22 @@ $$\pi_\theta:方策$$
 この目的関数の中では**状態価値関数**(*V*)と **方策**(*π*)の二つがニューラルネットワーク(NN)であるため、この二つのNNの学習を進めることで目的関数の最小化を図る
 
 - **状態価値関数(*V*)の損失関数(Loss)**  
-$$target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1}) $$  
+$$target = R_t + \gamma_{phase_t} V_{phase_{t+1}, w_{t+1}}(S_{t+1}) $$  
 $$loss_v = target - V_{phase_t, w_t}(S_t) $$ 
 
 - **方策(*π*)の損失関数(Loss)**  
-$$target = R_t + \gamma V_{phase_{t+1}, w_{t+1}}(S_{t+1})$$  
+$$target = R_t + \gamma_{phase_t} V_{phase_{t+1}, w_{t+1}}(S_{t+1})$$  
 $$loss_\pi = (target - V_{phase_t, w_t}(S_t))\nabla_\theta\log \pi_\theta (A_t | S_t) $$
 $$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$  
 
 今回作成した強化学習の中で**最も工夫した点**は、
-***V***と***π***をAgentがActionを起こすphaseであるpreflop, flop, turn, riverの**4つそれぞれに対し、個別に作成したことである**  
+***V***,***π***,***γ***をAgentがActionを起こす**4つのphase（preflop, flop, turn, river）それぞれに対し、個別に作成したことである**  
 
 通常の強化学習では個別に作成することはないのだが、ポーカーの場合、**各phaseそれぞれに対し考えるべき変数が大きく異なるため**、それぞれ個別に作成をした
 
-結果として、**共通の*V*と*π*の時は学習が発散していた**が、個別に作ることによって以下のように損失関数がそれぞれのphaseで**収束するようになった**
+#### *V*と*π*を個別に作った結果
+
+**共通の*V*と*π*の時は学習が発散していた**が、個別に作ることによって以下のように損失関数がそれぞれのphaseで**収束するようになった**
 
 
 | phase|行動価値関数(***V***)|方策(***π***)|
@@ -56,6 +59,25 @@ $$※ loss_\pi = loss_v\nabla_\theta\log \pi_\theta (A_t | S_t) $$
 | **flop** | ![v_flop](./images/v/flop.png) | ![pi_flop](./images/pi/flop.png) |
 | **turn** | ![v_turn](./images/v/turn.png) | ![pi_turn](./images/pi/turn.png) |
 | **river** | ![v_river](./images/v/river.png) | ![pi_river](./images/pi/river.png) |
+
+#### *γ*（割引率）を個別に作った結果
+
+ポーカーでは、各phaseから次のphaseの状況を予測できる確度が、phaseによって大きく異なる。
+
+例えば、preflop→flopではコミュニティカードが0→3枚に変化するため、preflopの時にflopへの状態変化を予測するのは難しい。
+ただ、turn→riverではコミュニティカードが4→5枚に変化しているが、ハンドの強さの変化の予測はつきやすい。
+
+*γ*は**「将来に貰える報酬をどれだけ割り引いて考えるか」**を考えるパラメータ。  
+小さいときには**直近の報酬しか考えない方策**を学習し、大きいときは**遠い未来の報酬まで考える方策**を学習する。
+
+preflopでは将来の予測が立てづらいため*γ*を小さく設定し、逆にflop,turn,riverでは将来の予測が立てやすいので、*γ*の値を大きめに設定した。
+
+結果として、*γ*を全て一律で0.8にしてた時は、preflopでは勝負に出ない方が良いとされているハンドでも勝負に出ることが多かったが、*γ*を変化させることで改善され、より強いとされているような挙動を多く示すようになった。
+
+||preflop|flop|turn|river|
+|------------------|-----------------|-----------------|-----------------|-----------------|
+| ***γ***|0.3|0.7|0.75|0.8|
+
 
 ## RewardとStateの設定
 ### Reward
